@@ -12,62 +12,39 @@ pub struct SERDEdata {
 }
 
 pub struct CDDAitems {
-
-    item_map:HashMap<String, Map<String, Value>>
-
+    item_map: HashMap<String, Map<String, Value>>,
 }
 impl CDDAitems {
-
-    fn new(indexed_item_map: HashMap<String, Map<String, Value>> ) -> Self {
-
+    fn new(indexed_item_map: HashMap<String, Map<String, Value>>) -> Self {
         let map_clone = indexed_item_map.clone();
 
         let mut axiomatic_items: HashMap<String, Map<String, Value>> = HashMap::new();
 
-
+        //generate axiomatic items map
         for item in &map_clone {
+            if let Some(x) = item.1.get("copy-from") {
+                ()
+            } else {
+                axiomatic_items.insert(item.0.clone(), item.1.clone());
 
-            if let Some(x) = item.1.get("copy-from"){
-
-                println!("yay");
-
+                println!("yay axiomatic item");
             }
-            else{println!("boo");}
-
-
-
-
         }
 
-
-
-
-
-
-
-
-
-        
-
-
-
-        CDDAitems{
-            item_map: indexed_item_map
-
-
+        //now go through all items again, and if they copy from an item in axiomatic items, then process inheritance on it
+        for item in &map_clone {
+            if let Some(x) = item.1.get("copy-from") {
+                if axiomatic_items.contains_key(x.as_str().unwrap()) {
+                    println!("copies from an axiomatic item");
+                }
+            }
         }
 
-
-
-
+        CDDAitems {
+            item_map: indexed_item_map,
+        }
     }
-
-
-
 }
-
-
-
 
 impl SERDEdata {
     //   "./assets/data/json/"
@@ -187,46 +164,51 @@ impl SERDEdata {
             //      "monster".to_string(),
         ];
 
-
-        for typed_vector in &typed_valuemap { // start indexed_item_map init
+        for typed_vector in &typed_valuemap {
+            // start indexed_item_map init
             let typed_vectortype = typed_vector.0.to_string().to_lowercase();
-    
+
             let value_vector = typed_vector.1;
             if item_types.contains(&typed_vectortype) {
-            for obj in value_vector {
-             
+                for obj in value_vector {
                     //
-                 //   println!("{obj:#?}");
-    
+                    //   println!("{obj:#?}");
+
                     let object = obj.as_object().unwrap();
-    
+
                     match object.get("abstract") {
                         Some(abid) => {
-                            indexed_item_map.try_insert(
-                                abid.clone().as_str().unwrap().to_string(),
-                                object.clone(),
-                            ).unwrap();
+                            indexed_item_map
+                                .try_insert(
+                                    abid.clone().as_str().unwrap().to_string(),
+                                    object.clone(),
+                                )
+                                .unwrap();
                         }
                         None => match object.get("id") {
                             Some(abid) => match abid {
                                 serde_json::Value::String(id_string) => {
-                                    indexed_item_map.try_insert(id_string.clone(), object.clone()).unwrap();
+                                    indexed_item_map
+                                        .try_insert(id_string.clone(), object.clone())
+                                        .unwrap();
                                 }
-    
+
                                 serde_json::Value::Array(id_array) => {
                                     panic!("should handle id array better");
                                     for aid in id_array {
-                                        indexed_item_map.try_insert(
-                                            aid.clone().as_str().unwrap().to_string(),
-                                            object.clone(),
-                                        ).unwrap();
+                                        indexed_item_map
+                                            .try_insert(
+                                                aid.clone().as_str().unwrap().to_string(),
+                                                object.clone(),
+                                            )
+                                            .unwrap();
                                     }
                                 }
-    
+
                                 _ => panic!("no suitable value for id"),
                             },
-    
-                            None => panic!("no suitable value for id") //no id or abstract
+
+                            None => panic!("no suitable value for id"), //no id or abstract
                         },
                     }
                 }
@@ -234,7 +216,5 @@ impl SERDEdata {
         } // end indexed_item_map init
 
         let cdda_items = CDDAitems::new(indexed_item_map);
-
-       
     }
 }
