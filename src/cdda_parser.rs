@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
+use std::collections::{HashSet,HashMap};
 
 #[derive(Debug)]
 pub struct SERDEdata {
@@ -13,7 +14,6 @@ pub struct SERDEdata {
 impl SERDEdata {
     //   "./assets/data/json/"
     pub fn new(path: &str) -> Self {
-        let mut item_map: Vec<serde_json::Value> = Vec::new(); //<"itemtype",<"id",item>>
         let mut serde_data = SERDEdata { data: Vec::new() };
         let mut item_counter = 0;
 
@@ -59,6 +59,71 @@ impl SERDEdata {
             }
         }
 
+        serde_data.process_json_inheritance();
         serde_data
     }
+
+
+
+
+    fn process_json_inheritance(&mut self){
+
+        let mut typeset = HashSet::new();
+
+        let mut typed_valuemap: HashMap<String, Vec<Value>> = HashMap::new();
+
+
+        let data_copy = self.data.clone();
+        
+
+        for value in data_copy.clone() {
+            let boop = format!("{:#?}",value);
+            let obj = &value.as_object().expect(&boop);
+    
+            match obj.get("type") {
+                Some(id) => {
+                    typeset.insert(id.as_str().unwrap().to_string().to_lowercase());
+                }
+    
+                None => {
+                    println!("{obj:#?}");
+                    panic!("no mitem typeeeeeeeeeeeee item count ");
+                }
+            } //end tagging match ritem.get("type"){
+        }
+
+        for jstype in &typeset {
+            typed_valuemap.insert(jstype.to_string(), vec![]);
+            //    println!("{jstype:#?}");
+        }
+
+        for value in data_copy.clone() {
+
+            //into object
+            let obj = value.as_object().unwrap();
+    
+            //get object type
+            let object_type = obj.get("type").unwrap().as_str().unwrap().to_string().to_lowercase();
+
+
+            // make the type a lowercase String
+        
+
+            //insert the object into a vector of objects of the same type
+            typed_valuemap.get_mut(&object_type).unwrap().push(value.clone());
+        }
+
+
+
+
+
+
+
+
+
+    }
+
+
+
+
 }
