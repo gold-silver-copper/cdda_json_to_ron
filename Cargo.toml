@@ -21,7 +21,9 @@ exclude = [
 [dev-dependencies]
 
 bincode = "1.3"
-serde = "1.0"
+ron = "0.8"
+serde-transcode = "1.1.1"
+serde = { version = "1", features = ["derive"] }
 varint-rs = "2.2"
 ordered-multimap = "0.7"
 clap = { version = "4.1", features = ["derive"] }

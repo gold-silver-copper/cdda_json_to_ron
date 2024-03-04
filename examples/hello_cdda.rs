@@ -1,24 +1,20 @@
-
-
 use cdda_json_to_ron::CDDAParser;
 
-use walkdir::WalkDir;
 use serde_json::*;
 use std::fs;
-
+use walkdir::WalkDir;
+use ron::*;
+use serde_transcode::*;
+use std::io;
+use ron::ser::PrettyConfig;
 
 #[derive(Debug)]
 pub struct SERDEdata {
-    pub data: Vec<Value>,
+    pub data: Vec<serde_json::Value>,
 }
 
-
-fn main()  {
-    
-
-    
-
-    let mut item_map: Vec<Value> = Vec::new(); //<"itemtype",<"id",item>>
+fn main() {
+    let mut item_map: Vec<serde_json::Value> = Vec::new(); //<"itemtype",<"id",item>>
     let mut serde_data = SERDEdata { data: Vec::new() };
     let mut item_counter = 0;
 
@@ -33,41 +29,30 @@ fn main()  {
             None => "lol",
         };
 
+let my_config = PrettyConfig::new()
+.depth_limit(4)
+// definitely superior (okay, just joking)
+.indentor("\t".to_owned());
+
         if (entry.path().is_file()) && (f_exten == "json") {
             //must be file cause could be directory
             //    println!("json data path: {}", entry.path().display());
 
             let data = fs::read_to_string(path).expect("Unable to read json data from path");
 
-            let mut json_to_parse: serde_json::Value =
-                serde_json::from_str(&data).expect("Unable to parse itemfile from json");
+            // A JSON deserializer. You can use any Serde Deserializer here.
+            let mut deserializer = serde_json::Deserializer::from_str(&data);
 
-            let mut dataitemarray: &mut Vec<Value> = &mut Vec::new();
+            // A compacted JSON serializer. You can use any Serde Serializer here.
+            let mut serializer = ron::ser::Serializer::new(io::stdout() , Some(my_config)).unwrap();
 
-            if json_to_parse.is_object() {
-                dataitemarray.push(json_to_parse);
-            } else if json_to_parse.is_array() {
-                dataitemarray = json_to_parse.as_array_mut().unwrap();
-            } else {
-                panic!("{json_to_parse:#?}");
-            }
-
-            let finalarray = dataitemarray;
-
-            for item in finalarray {
-                item_counter += 1;
-
-                let ritem = item.take();
-
-                serde_data.data.push(ritem);
-            }
+            // Prints `{"a boolean":true,"an array":[3,2,1]}` to stdout.
+            // This line works with any self-describing Deserializer and any Serializer.
+            serde_transcode::transcode(&mut deserializer, &mut serializer).unwrap();
         }
     }
 
-
     //let mut deserializer = serde_json::Deserializer::from_str(input);
 
-    println!("{:#?}",serde_data);
-
-
+   // println!("{:#?}", serde_data);
 }
