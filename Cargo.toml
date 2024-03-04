@@ -1,0 +1,27 @@
+[package]
+name = "cdda_json_to_ron"
+version = "0.1.0"
+edition = "2021"
+description = "lib skeleton "
+license = "MIT OR Apache-2.0"
+
+exclude = [
+  "assets/*",
+  ".github",
+  "Makefile.toml",
+  "CONTRIBUTING.md",
+  "*.log",
+  "tags",
+]
+
+[dependencies]
+
+#bracket-lib = { version = "0.8.7", default-features = false , features=["crossterm"]}  <- do this to run from crossterm
+
+[dev-dependencies]
+
+
+[[example]]
+name = "hello_cdda"
+doc-scrape-examples = true
+
