@@ -67,7 +67,7 @@ impl SERDEdata {
         let mut typeset = HashSet::new();
 
         let mut typed_valuemap: HashMap<String, Vec<Value>> = HashMap::new();
-        let mut itemmap: HashMap<String, Map<String, Value>> = HashMap::new();
+        let mut indexed_item_map: HashMap<String, Map<String, Value>> = HashMap::new();
 
         let data_copy = self.data.clone();
 
@@ -130,8 +130,8 @@ impl SERDEdata {
         ];
 
 
-        for typed_vector in &typed_valuemap { // start itemmap init
-            let typed_vectortype = typed_vector.0.to_string();
+        for typed_vector in &typed_valuemap { // start indexed_item_map init
+            let typed_vectortype = typed_vector.0.to_string().to_lowercase();
     
             let value_vector = typed_vector.1;
             if item_types.contains(&typed_vectortype) {
@@ -144,24 +144,24 @@ impl SERDEdata {
     
                     match object.get("abstract") {
                         Some(abid) => {
-                            itemmap.insert(
-                                abid.as_str().unwrap().to_string().clone(),
+                            indexed_item_map.try_insert(
+                                abid.clone().as_str().unwrap().to_string(),
                                 object.clone(),
-                            );
+                            ).unwrap();
                         }
                         None => match object.get("id") {
                             Some(abid) => match abid {
                                 serde_json::Value::String(id_string) => {
-                                    itemmap.insert(id_string.clone(), object.clone());
+                                    indexed_item_map.try_insert(id_string.clone(), object.clone()).unwrap();
                                 }
     
                                 serde_json::Value::Array(id_array) => {
                                     panic!("should handle id array better");
                                     for aid in id_array {
-                                        itemmap.insert(
-                                            aid.as_str().unwrap().to_string().clone(),
+                                        indexed_item_map.try_insert(
+                                            aid.clone().as_str().unwrap().to_string(),
                                             object.clone(),
-                                        );
+                                        ).unwrap();
                                     }
                                 }
     
@@ -173,7 +173,7 @@ impl SERDEdata {
                     }
                 }
             }
-        } // end itemmap init
+        } // end indexed_item_map init
 
        
     }
