@@ -11,6 +11,64 @@ pub struct SERDEdata {
     pub data: Vec<serde_json::Value>,
 }
 
+pub struct CDDAitems {
+
+    item_map:HashMap<String, Map<String, Value>>
+
+}
+impl CDDAitems {
+
+    fn new(indexed_item_map: HashMap<String, Map<String, Value>> ) -> Self {
+
+        let map_clone = indexed_item_map.clone();
+
+        let mut axiomatic_items: HashMap<String, Map<String, Value>> = HashMap::new();
+
+
+        for item in &map_clone {
+
+            if let Some(x) = item.1.get("copy-from"){
+
+                println!("yay");
+
+            }
+            else{println!("boo");}
+
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+        
+
+
+
+        CDDAitems{
+            item_map: indexed_item_map
+
+
+        }
+
+
+
+
+    }
+
+
+
+}
+
+
+
+
 impl SERDEdata {
     //   "./assets/data/json/"
     pub fn new(path: &str) -> Self {
@@ -174,6 +232,8 @@ impl SERDEdata {
                 }
             }
         } // end indexed_item_map init
+
+        let cdda_items = CDDAitems::new(indexed_item_map);
 
        
     }
