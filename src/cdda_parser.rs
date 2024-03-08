@@ -16,7 +16,7 @@ pub struct CDDAitems {
 }
 impl CDDAitems {
     fn new(indexed_item_map: HashMap<String, Map<String, Value>>) -> Self {
-        let map_clone = indexed_item_map.clone();
+        let mut map_clone = indexed_item_map.clone();
 
         let mut axiomatic_items: HashMap<String, Map<String, Value>> = HashMap::new();
 
@@ -32,10 +32,53 @@ impl CDDAitems {
         }
 
         //now go through all items again, and if they copy from an item in axiomatic items, then process inheritance on it
-        for item in &map_clone {
+        for item in &mut map_clone {
             if let Some(x) = item.1.get("copy-from") {
                 if axiomatic_items.contains_key(x.as_str().unwrap()) {
                     println!("copies from an axiomatic item");
+
+                    let mut new_item_def = axiomatic_items
+                                .get(x.as_str().unwrap())
+                                .unwrap()
+                                .clone();
+
+
+                    if let Some(y) = item.1.remove("copy-from") {}
+                    if let Some(z) = item.1.remove("extend") {
+
+                        let extend_obj = z.as_object().unwrap();
+
+
+
+
+                        for entry in extend_obj {
+                            let base_def = new_item_def.get_mut(entry.0);
+                            println!("z is {:?}", base_def);
+                            println!("entry is {:?}", entry);
+
+                            match base_def {
+                                None => {
+                                    new_item_def
+                                        .insert(entry.0.clone(), entry.1.clone());
+                                }
+                                Some(base_def_value) => {
+                                    if let Value::Array(base_def_array) = base_def_value {
+                                        let bd_value = entry.1.as_array().unwrap();
+
+                                        base_def_array.append(&mut bd_value.clone());
+                                    }
+                                    else{panic!("def not an array: {base_def_value:?}")}
+                                },
+                            }
+                            //   panic!("entry is {:?}",entry);
+                        }
+
+                      
+                    }
+
+                    axiomatic_items.insert(item.0.clone(),new_item_def);
+
+
                 }
             }
         }
